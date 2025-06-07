@@ -37,10 +37,10 @@ editFormDOM.addEventListener("submit", async (e) => {
 
     const {
       data: { task },
-    } = await axios.patch(`http://localhost:3000/api/v1/tasks/${id}`, {
+    } = await axios.patch(`${BASE_URL}/${id}`, {
       name: taskName,
       completed: taskCompleted,
-    }); // Complete URL
+    }); // Use dynamic BASE_URL
 
     const { _id: taskID, completed, name } = task;
 
