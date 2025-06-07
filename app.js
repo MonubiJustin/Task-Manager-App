@@ -4,6 +4,7 @@ const express = require('express');
 const app = express();
 
 
+
 // routes
 require('./startup/db')()   // connection to database
 require('./startup/routes')(app)  // middleware

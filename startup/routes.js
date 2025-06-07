@@ -3,8 +3,10 @@ const tasks = require('../routes/tasks')
 const morgan = require('morgan');
 const express = require('express');
 const path = require('path')
+const cors = require('cors')
 
 module.exports = function (app) {
+    app.use(cors());
     app.use(express.json());
     app.use(morgan('tiny'));
     app.use('/api/v1/tasks', tasks);
