@@ -19,13 +19,17 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             const data = await response.json()
-
+            
             if(!response.ok) {
-                authMsg.textContent = data
+                authMsg.textContent = data.msg
                 authMsg.style.color = 'red'
             } else {
-                authMsg.textContent = data;
+                
+                authMsg.textContent = data.msg;
                 authMsg.style.color = 'green'
+
+                //store the token in localstorage
+                localStorage.setItem("token", data.token);
                 setTimeout(() => {
                     window.location.href = "../index.html"
                 }, 2000)

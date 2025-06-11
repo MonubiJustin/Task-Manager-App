@@ -4,15 +4,16 @@ const asyncMiddleware = require('../middleware/async');
 
 //@desc Get all Tasks
 //@route GET /api/v1/tasks
-//@access public
+//@access private
 exports.getAllTask = asyncMiddleware(async (req, res) => {
-    const tasks = await Task.find();
+
+    const tasks = await Task.find({user_id: req.user.id}).populate('user_id', 'username');
     res.status(200).json({ tasks });
 });
 
 //@desc Get Single Task
 //@route GET /api/v1/tasks/:id
-//@access public
+//@access private
 exports.getTask = asyncMiddleware(async (req, res) => {
     const task = await Task.findById(req.params.id);
     res.status(200).json({ task });
@@ -20,15 +21,20 @@ exports.getTask = asyncMiddleware(async (req, res) => {
 
 //@desc Create New Task
 //@route POST /api/v1/tasks
-//@access public
+//@access private
 exports.createTask = asyncMiddleware(async (req, res) => {
-    const task = await Task.create(req.body);
-    res.end();
+    console.log('create task route hit')
+    console.log(req.user)
+    const task = await Task.create({
+        name: req.body.name,
+        user_id: req.user.id
+    });
+    res.status(201).json({task: task});
 });
 
 //@desc  Update Task
 //@route PUT /api/v1/tasks/:id
-//@access public
+//@access private
 exports.updateTask = asyncMiddleware(async (req, res) => {
     const { id: taskID } = req.params;
 
@@ -46,7 +52,7 @@ exports.updateTask = asyncMiddleware(async (req, res) => {
 
 //@desc  Delete Task
 //@route DELETE /api/v1/tasks/:id
-//@access public
+//@access private
 exports.deleteTask = asyncMiddleware(async (req, res) => {
     const task = await Task.findByIdAndDelete(req.params.id);
     res.end();

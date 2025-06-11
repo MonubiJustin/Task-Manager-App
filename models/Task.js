@@ -10,7 +10,12 @@ const taskSchema = new mongoose.Schema({
     completed: {
         type: Boolean,
         default: false
+    },
+    user_id: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
     }
-}, { timestamps: true });
+});
 
 module.exports = mongoose.model('Task', taskSchema);

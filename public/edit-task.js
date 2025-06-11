@@ -10,9 +10,8 @@ let tempName;
 
 const showTask = async () => {
   try {
-    const {
-      data: { task },
-    } = await axios.get(`${BASE_URL}/${id}`); // Use dynamic BASE_URL
+
+    const { data: { task } } = await axios.get(`${BASE_URL}/${id}`); // Use dynamic BASE_URL
     const { _id: taskID, completed, name } = task;
 
     taskIDDOM.textContent = taskID;

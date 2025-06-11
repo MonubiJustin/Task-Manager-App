@@ -22,10 +22,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
 
             if(!response.ok) {
-                authMsg.textContent = data
+                authMsg.textContent = data.msg
                 authMsg.style.color = "red";
             } else {
-                authMsg.textContent = data;
+                authMsg.textContent = data.msg;
                 authMsg.style.color = 'green'
                 setTimeout(() => {
                     window.location.href = "./login.html"
