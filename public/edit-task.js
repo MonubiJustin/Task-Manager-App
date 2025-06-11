@@ -10,35 +10,14 @@ let tempName;
 
 const showTask = async () => {
   try {
-
-    const { data: { task } } = await axios.get(`${BASE_URL}/${id}`); // Use dynamic BASE_URL
-    const { _id: taskID, completed, name } = task;
-
-    taskIDDOM.textContent = taskID;
-    taskNameDOM.value = name;
-    tempName = name;
-    if (completed) {
-      taskCompletedDOM.checked = true;
-    }
-  } catch (error) {
-    console.log(error);
-  }
-};
-
-showTask();
-
-editFormDOM.addEventListener("submit", async (e) => {
-  editBtnDOM.textContent = "Loading...";
-  e.preventDefault();
-  try {
-    const taskName = taskNameDOM.value;
-    const taskCompleted = taskCompletedDOM.checked;
+    const token = localStorage.getItem("token"); // Retrieve the token from localStorage
 
     const {
       data: { task },
-    } = await axios.patch(`${BASE_URL}/${id}`, {
-      name: taskName,
-      completed: taskCompleted,
+    } = await axios.get(`${BASE_URL}/${id}`, {
+      headers: {
+        "x-auth-token": token, // Include the token in the request header
+      },
     }); // Use dynamic BASE_URL
 
     const { _id: taskID, completed, name } = task;
@@ -49,14 +28,55 @@ editFormDOM.addEventListener("submit", async (e) => {
     if (completed) {
       taskCompletedDOM.checked = true;
     }
+  } catch (error) {
+    console.log(error);
     formAlertDOM.style.display = "block";
-    formAlertDOM.textContent = `success, edited task`;
+    formAlertDOM.textContent = `Error fetching task details`;
+    formAlertDOM.classList.add("text-danger");
+  }
+};
+
+showTask();
+
+editFormDOM.addEventListener("submit", async (e) => {
+  editBtnDOM.textContent = "Loading...";
+  e.preventDefault();
+  try {
+    const token = localStorage.getItem("token"); // Retrieve the token from localStorage
+    const taskName = taskNameDOM.value;
+    const taskCompleted = taskCompletedDOM.checked;
+
+    const {
+      data: { task },
+    } = await axios.patch(
+      `${BASE_URL}/${id}`,
+      {
+        name: taskName,
+        completed: taskCompleted,
+      },
+      {
+        headers: {
+          "x-auth-token": token, // Include the token in the request header
+        },
+      }
+    ); // Use dynamic BASE_URL
+
+    const { _id: taskID, completed, name } = task;
+
+    taskIDDOM.textContent = taskID;
+    taskNameDOM.value = name;
+    tempName = name;
+    if (completed) {
+      taskCompletedDOM.checked = true;
+    }
+    formAlertDOM.style.display = "block";
+    formAlertDOM.textContent = `Success, edited task`;
     formAlertDOM.classList.add("text-success");
   } catch (error) {
     console.error(error);
     taskNameDOM.value = tempName;
     formAlertDOM.style.display = "block";
-    formAlertDOM.innerHTML = `error, please try again`;
+    formAlertDOM.innerHTML = `Error, please try again`;
   }
   editBtnDOM.textContent = "Edit";
   setTimeout(() => {
