@@ -26,6 +26,8 @@ const userSchema = new mongoose.Schema({
     minlength: [8, "password should be more than 8 characters"],
     trim: true,
   },
+  resetToken: String,
+  resetTokenExpiry: Date
 });
 
 userSchema.pre("save", async function (next) {
