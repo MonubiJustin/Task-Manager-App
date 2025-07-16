@@ -29,7 +29,7 @@ exports.registerUser = asyncMiddleware(async (req, res) => {
 //@access public
 exports.loginUser = asyncMiddleware(async (req, res) => {
   const { error } = log_validate(req.body);
-  if (error) return res.status(400).json(error.details[0].message);
+  if (error) return res.status(400).json({msg: error.details[0].message});
 
   const { email, password } = req.body;
   const user = await User.findOne({ email });
@@ -70,7 +70,7 @@ exports.resetLink = asyncMiddleware(async (req, res) => {
 
     const resend = new Resend(process.env.RESEND_API_KEY)
 
-    const data = await resend.emails.send({
+     await resend.emails.send({
       from: 'onboarding@resend.dev',
       to: email,
       subject: 'Reset your password',
@@ -79,7 +79,7 @@ exports.resetLink = asyncMiddleware(async (req, res) => {
     })
     
 
-    res.status(200).json({ success: true, msg: "Password reset link sent!"});
+    res.status(200).json({ success: true, msg: "Password reset link sent!", token: token});
 
   } catch (error) {
     console.error('Resend error:', error);
@@ -89,11 +89,13 @@ exports.resetLink = asyncMiddleware(async (req, res) => {
 });
 
 //@desc Reset Password
-//@route /api/v1/users/reset-password/:token
+//@route POST /api/v1/users/reset-password/:token
 //@access private
 exports.resetPassword = asyncMiddleware(async (req, res) => {
   const { token } = req.params;
   const { password } = req.body;
+
+  if (password.length < 8) return res.status(400).json({msg: "Minimum password length should be 8 characters"})
 
   const user = await User.findOne({
     resetToken: token,
