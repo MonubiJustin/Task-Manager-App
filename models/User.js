@@ -1,7 +1,7 @@
 const mongoose = require("mongoose");
 const Joi = require("joi");
-const jwt = require('jsonwebtoken');
-const bcrypt = require('bcrypt');
+const jwt = require("jsonwebtoken");
+const bcrypt = require("bcrypt");
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -27,69 +27,31 @@ const userSchema = new mongoose.Schema({
     trim: true,
   },
   resetToken: String,
-  resetTokenExpiry: Date
+  resetTokenExpiry: Date,
 });
 
 userSchema.pre("save", async function (next) {
-  if (!this.isModified('password')) return next();
+  if (!this.isModified("password")) return next();
 
   const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt)
-  next()
-})
+  this.password = await bcrypt.hash(this.password, salt);
+  next();
+});
 
 userSchema.methods.isValidPassword = async function (password) {
   return await bcrypt.compare(password, this.password);
-  
-}
+};
 
 userSchema.methods.genAuthToken = function () {
-  return jwt.sign({
-    id: this._id.toString(),
-    name: this.username
-  }, process.env.SECRET_KEY);
+  return jwt.sign(
+    {
+      id: this._id.toString(),
+      name: this.username,
+    },
+    process.env.SECRET_KEY
+  );
+};
 
-}
+const User = mongoose.model("User", userSchema);
 
-const User = mongoose.model("User", userSchema)
-
-// Registration Joi validation
-function reg_validate(body) {
-  const schema = Joi.object({
-    username: Joi.string().required().lowercase().trim().min(3).max(50).messages({
-      "string.min": "name must be at least 3 characters",
-    }),
-    email: Joi.string().required().trim().email().max(50).messages({
-      "string.email": "Invalid email",
-      "string.max": "Email cannot exceed 50 characters",
-    }),
-      password: Joi.string().required().trim().min(8).max(50).messages({
-          "string.min": "Password must be at least 8 characters long",
-          "string.max": "Password cannot exceed 50 characters"
-    })
-  });
-    
-    return schema.validate(body)
-}
-
-// Login Joi validation
-function log_validate(body) {
-  const schema = Joi.object({
-    email: Joi.string().required().email().trim().max(50).messages({
-      "string.max": "Email cannot exceed 50 characters",
-      "string.email": "Invalid email"
-    }),
-    password: Joi.string().required().trim().min(8).max(50).messages({
-      "string.min": "Password must be at least 8 characters long",
-      "string.max": "Password cannot exceed 50 characters"
-    })
-  });
-
-  return schema.validate(body);
-}
-
-module.exports = {
-    User,
-    reg_validate,
-    log_validate
-}
+module.exports = User;

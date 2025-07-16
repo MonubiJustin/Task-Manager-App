@@ -1,7 +1,9 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const usersController = require('../controller/usersController')
-const auth = require('../middleware/auth');
+const usersController = require("../controller/usersController");
+const auth = require("../middleware/auth");
+const validate = require("../middleware/validate");
+const { log_validator, reg_validator } = require("../validators/userValidator");
 
 /**
  * @swagger
@@ -34,8 +36,7 @@ const auth = require('../middleware/auth');
  *         description: Internal Server Error - An unexpected error occurred on the server.
  */
 
-router.post('/register', usersController.registerUser)  // Registration route
-
+router.post("/register", validate(reg_validator), usersController.registerUser); // Registration route
 
 /**
  * @swagger
@@ -56,7 +57,7 @@ router.post('/register', usersController.registerUser)  // Registration route
  *         description: OK - Login Successfully
  *         content:
  *              application/json:
- *                  schema: 
+ *                  schema:
  *                      type: object
  *                      properties:
  *                          msg:
@@ -65,7 +66,7 @@ router.post('/register', usersController.registerUser)  // Registration route
  *                          token:
  *                              type: string
  *                              example: your.jwt.token
- *         
+ *
  *       400:
  *         description: Bad Request - Invalid email or password.
  *       401:
@@ -75,10 +76,10 @@ router.post('/register', usersController.registerUser)  // Registration route
  *       500:
  *         description: Internal Server Error - An unexpected error occurred on the server.
  */
-router.post('/login', usersController.loginUser); // Login route
+router.post("/login", validate(log_validator), usersController.loginUser); // Login route
 
 // me
-router.get('/me', auth, usersController.currentUser);
+router.get("/me", auth, usersController.currentUser);
 
 /**
  * @swagger
@@ -110,7 +111,7 @@ router.get('/me', auth, usersController.currentUser);
  *                              example: Password reset link sent!
  *                          token:
  *                              type: string
- *                              example: your.jwt.token    
+ *                              example: your.jwt.token
  *       400:
  *         description: Bad Request - Missing or invalid email address.
  *       404:
@@ -118,8 +119,7 @@ router.get('/me', auth, usersController.currentUser);
  *       500:
  *         description: Internal Server Error - Failed to send email
  */
-router.post('/forgot-password', usersController.resetLink) // send reset link
-
+router.post("/forgot-password", usersController.resetLink); // send reset link
 
 /**
  * @swagger
@@ -160,7 +160,6 @@ router.post('/forgot-password', usersController.resetLink) // send reset link
  *       500:
  *         description: Internal Server Error - Failed to reset password
  */
-router.post('/reset-password/:token', usersController.resetPassword)  // reset password
-
+router.post("/reset-password/:token", usersController.resetPassword); // reset password
 
 module.exports = router;
