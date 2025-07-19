@@ -13,11 +13,11 @@ const showTasks = async () => {
   try {
     const response = await axios.get(BASE_URL, {
       headers: {
-        "x-auth-token": token, // Include the token in the request header
+        "Authorization": `Bearer ${token}`, // Include the token in the request header
       },
     });
 
-    const { tasks } = response.data;
+    const  tasks  = response.data.data;
     if (tasks.length < 1) {
       tasksDOM.innerHTML = '<h5 class="empty-list">No tasks in your list</h5>';
       return;
@@ -65,7 +65,7 @@ tasksDOM.addEventListener("click", async (e) => {
     try {
       await axios.delete(`${BASE_URL}/${id}`, {
         headers: {
-          "x-auth-token": token // include the token in the request header
+          "Authorization": `Bearer ${token}` // include the token in the request header
         }
       }); // Use dynamic BASE_URL
       showTasks();
@@ -85,7 +85,7 @@ formDOM.addEventListener("submit", async (e) => {
   try {
     await axios.post(`${BASE_URL}`, { name }, {
       headers: {
-        "x-auth-token": token // include the token in the request header
+        "Authorization": `Bearer ${token}` // include the token in the request header
       }
     }); // Use dynamic BASE_URL
     showTasks();

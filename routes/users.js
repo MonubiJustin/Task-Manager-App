@@ -10,7 +10,7 @@ const { log_validator, reg_validator } = require("../validators/userValidator");
  * /api/v1/users/register:
  *   post:
  *     tags:
- *       - users
+ *       - Users
  *     summary: Create a new user
  *     description: Creates a new user with the provided data. The request body must include all required fields.
  *     requestBody:
@@ -36,14 +36,14 @@ const { log_validator, reg_validator } = require("../validators/userValidator");
  *         description: Internal Server Error - An unexpected error occurred on the server.
  */
 
-router.post("/register", validate(reg_validator), usersController.registerUser); // Registration route
+router.post("/register", validate(reg_validator), usersController.registerUser);
 
 /**
  * @swagger
  * /api/v1/users/login:
  *   post:
  *     tags:
- *       - users
+ *       - Users
  *     summary: Authenticate user
  *     description: Logs in a user and returns a JWT token for authentication
  *     requestBody:
@@ -76,9 +76,34 @@ router.post("/register", validate(reg_validator), usersController.registerUser);
  *       500:
  *         description: Internal Server Error - An unexpected error occurred on the server.
  */
-router.post("/login", validate(log_validator), usersController.loginUser); // Login route
+router.post("/login", validate(log_validator), usersController.loginUser);
 
-// me
+/**
+ * @swagger
+ * /api/v1/users/me:
+ *   get:
+ *     tags:
+ *       - Users
+ *     security:
+ *          - bearerAuth: []
+ *     summary: Feth information of current logged in user
+ *     description: Retrieves the information of the authenticated user. This route is JWT protected.
+ *     responses:
+ *       200:
+ *         description: OK - Successfully retrieved logged in users's information.
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/CurrentUser'
+ *       400:
+ *         description: Bad Request - Invalid query parameters provided.
+ *       401:
+ *          description: Unauthorized - Missing or invalid token
+ *       404:
+ *          description: Not Found - User not found
+ *       500:
+ *         description: Internal Server Error - An unexpected error occurred on the server.
+ */
 router.get("/me", auth, usersController.currentUser);
 
 /**
@@ -86,7 +111,7 @@ router.get("/me", auth, usersController.currentUser);
  * /api/v1/users/forgot-password:
  *   post:
  *     tags:
- *       - users
+ *       - Users
  *     summary: Send password reset link
  *     description: Sends a password reset link to the user's registered email
  *     requestBody:
@@ -106,27 +131,38 @@ router.get("/me", auth, usersController.currentUser);
  *                          success:
  *                              type: boolean
  *                              example: true
- *                          msg:
+ *                          message:
  *                              type: string
  *                              example: Password reset link sent!
- *                          token:
+ *                          data:
  *                              type: string
  *                              example: your.jwt.token
  *       400:
  *         description: Bad Request - Missing or invalid email address.
  *       404:
  *         description: Not Found - User not found.
+ *         content:
+ *              application/json:
+ *                  schema:
+ *                      type: object
+ *                      properties:
+ *                          success:
+ *                              type: boolean
+ *                              default: false
+ *                          message:
+ *                              type: string
+ *                              example: User not found
  *       500:
  *         description: Internal Server Error - Failed to send email
  */
-router.post("/forgot-password", usersController.resetLink); // send reset link
+router.post("/forgot-password", usersController.resetLink);
 
 /**
  * @swagger
  * /api/v1/users/reset-password/{token}:
  *   post:
  *     tags:
- *       - users
+ *       - Users
  *     summary: Resets password using token
  *     description: Reset the user's password using the token sent to their email.
  *     parameters:
@@ -150,7 +186,10 @@ router.post("/forgot-password", usersController.resetLink); // send reset link
  *             schema:
  *               type: object
  *               properties:
- *                  msg:
+ *                  success:
+ *                      type: boolean
+ *                      default: true
+ *                  message:
  *                      type: string
  *                      example: Password reset successfully
  *       400:
@@ -160,6 +199,6 @@ router.post("/forgot-password", usersController.resetLink); // send reset link
  *       500:
  *         description: Internal Server Error - Failed to reset password
  */
-router.post("/reset-password/:token", usersController.resetPassword); // reset password
+router.post("/reset-password/:token", usersController.resetPassword);
 
 module.exports = router;

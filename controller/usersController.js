@@ -1,5 +1,6 @@
 const asyncMiddleware = require("../middleware/async");
 const { Resend } = require("resend");
+const User = require("../models/User");
 
 //@desc Register user
 //@route POST /api/v1/users/register
@@ -7,16 +8,21 @@ const { Resend } = require("resend");
 exports.registerUser = asyncMiddleware(async (req, res) => {
   // check if user is already registerd
   let user = await User.findOne({ email: req.body.email });
-  if (user) return res.status(409).json({ msg: "Email already exists" });
+  if (user)
+    return res.status(409).json({
+      success: false,
+      message: "Email already exists",
+    });
 
   user = new User(req.body);
   await user.save();
 
   const token = user.genAuthToken();
-  res
-    .header("x-auth-token", token)
-    .status(201)
-    .json({ msg: "User registered successfully", user: user });
+  res.header("Authorization", `Bearer ${token}`).status(201).json({
+    success: true,
+    message: "User Registered successfully",
+    data: token,
+  });
 });
 
 //@desc Login User
@@ -25,15 +31,19 @@ exports.registerUser = asyncMiddleware(async (req, res) => {
 exports.loginUser = asyncMiddleware(async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
-  if (!user) return res.status(401).json({ msg: "Invalid email or password" });
 
-  const isValid = await user.isValidPassword(password);
-  console.log(isValid);
-  if (!isValid)
-    return res.status(401).json({ msg: "Invalid email or password" });
+  if (!user || (await !user.isValidPassword(password)))
+    return res.status(401).json({
+      success: false,
+      message: "Invalid email or password",
+    });
 
   const token = user.genAuthToken();
-  res.status(200).json({ msg: "User logged in successfully", token: token });
+  res.status(200).json({
+    success: true,
+    message: "User logged in successfully",
+    data: token,
+  });
 });
 
 //@desc Info of logged in user
@@ -41,7 +51,15 @@ exports.loginUser = asyncMiddleware(async (req, res) => {
 //@access private
 exports.currentUser = asyncMiddleware(async (req, res) => {
   const user = await User.findById(req.user.id).select("username email");
-  res.status(200).json({ user: user });
+  if (!user)
+    return res.status(404).json({
+      success: false,
+      message: "User doesn't exist",
+    });
+  res.status(200).json({
+    success: true,
+    data: user,
+  });
 });
 
 //@desc Send reset password link
@@ -50,7 +68,11 @@ exports.currentUser = asyncMiddleware(async (req, res) => {
 exports.resetLink = asyncMiddleware(async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
-  if (!user) return res.status(404).json({ msg: "User not found" });
+  if (!user)
+    return res.status(404).json({
+      success: false,
+      message: "User not found",
+    });
 
   // generate token
   const token = user.genAuthToken();
@@ -70,12 +92,17 @@ exports.resetLink = asyncMiddleware(async (req, res) => {
              <a href="${resetLink}">Click here to reset your password</a>`,
     });
 
-    res
-      .status(200)
-      .json({ success: true, msg: "Password reset link sent!", token: token });
+    res.status(200).json({
+      success: true,
+      message: "Password reset link sent!",
+      data: token,
+    });
   } catch (error) {
     console.error("Resend error:", error);
-    res.status(500).json({ success: false, msg: "Failed to send email" });
+    res.status(500).json({
+      success: false,
+      message: "Failed to send email",
+    });
   }
 });
 
@@ -87,21 +114,29 @@ exports.resetPassword = asyncMiddleware(async (req, res) => {
   const { password } = req.body;
 
   if (password.length < 8)
-    return res
-      .status(400)
-      .json({ msg: "Minimum password length should be 8 characters" });
+    return res.status(400).json({
+      success: false,
+      message: "Minimum password length should be 8 characters",
+    });
 
   const user = await User.findOne({
     resetToken: token,
     resetTokenExpiry: { $gt: Date.now() },
   });
 
-  if (!user) return res.status(404).json({ msg: "Invalid or expired token" });
+  if (!user)
+    return res.status(404).json({
+      success: false,
+      message: "Invalid or expired token",
+    });
 
   user.password = password;
   user.resetToken = undefined;
   user.resetTokenExpiry = undefined;
   await user.save();
 
-  res.status(200).json({ msg: "Password reset successfully" });
+  res.status(200).json({
+    success: true,
+    message: "Password reset successfully",
+  });
 });

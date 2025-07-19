@@ -12,15 +12,13 @@ const showTask = async () => {
   try {
     const token = localStorage.getItem("token"); // Retrieve the token from localStorage
 
-    const {
-      data: { task },
-    } = await axios.get(`${BASE_URL}/${id}`, {
+    const response = await axios.get(`${BASE_URL}/${id}`, {
       headers: {
-        "x-auth-token": token, // Include the token in the request header
+        "Authorization": `Bearer ${token}`, // Include the token in the request header
       },
     }); // Use dynamic BASE_URL
 
-    const { _id: taskID, completed, name } = task;
+    const { _id: taskID, completed, name } = response.data.data;
 
     taskIDDOM.textContent = taskID;
     taskNameDOM.value = name;
@@ -46,9 +44,7 @@ editFormDOM.addEventListener("submit", async (e) => {
     const taskName = taskNameDOM.value;
     const taskCompleted = taskCompletedDOM.checked;
 
-    const {
-      data: { task },
-    } = await axios.patch(
+    const response = await axios.patch(
       `${BASE_URL}/${id}`,
       {
         name: taskName,
@@ -56,12 +52,12 @@ editFormDOM.addEventListener("submit", async (e) => {
       },
       {
         headers: {
-          "x-auth-token": token, // Include the token in the request header
+          "Authorization": `Bearer ${token}`, // Include the token in the request header
         },
       }
     ); // Use dynamic BASE_URL
 
-    const { _id: taskID, completed, name } = task;
+    const { _id: taskID, completed, name } = response.data.data;
 
     taskIDDOM.textContent = taskID;
     taskNameDOM.value = name;

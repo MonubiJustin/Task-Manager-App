@@ -1,3 +1,1 @@
-module.exports = (req, res, next) => {
-    res.status(404).json("Route not Found");
-}
+module.exports = (req, res, next) => res.status(404).json("Route not Found");

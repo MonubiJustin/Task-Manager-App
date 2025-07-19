@@ -6,7 +6,7 @@ const tasks = require("../routes/tasks");
 const users = require("../routes/users");
 const notFound = require("../middleware/notFound");
 const error = require("../middleware/error");
-const setUpSwagger = require('./swagger')
+const setUpSwagger = require("./swagger");
 
 module.exports = function (app) {
   // Enable CORS
@@ -21,7 +21,7 @@ module.exports = function (app) {
   // API routes
   app.use("/api/v1/tasks", tasks);
   app.use("/api/v1/users", users);
-  setUpSwagger(app)
+  setUpSwagger(app);
 
   // Serve static files
   app.use(express.static(path.join(__dirname, "../public")));
