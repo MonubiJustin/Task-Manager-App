@@ -6,5 +6,8 @@ module.exports = function () {
   mongoose
     .connect(db)
     .then(() => console.log(`Connected to DB: ${db}`))
-    .catch((err) => console.log(err.message));
+    .catch((err) => {
+      console.log(`MongoDB conection error: ${err}`)
+      process.exit(1); // Exit with error code to make failure clear
+    });
 };
