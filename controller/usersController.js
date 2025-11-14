@@ -1,6 +1,6 @@
 const asyncMiddleware = require("../middleware/async");
-const { Resend } = require("resend");
 const User = require("../models/User");
+const sendEmail = require("../utils/sendEmail");
 
 //@desc Register user
 //@route POST /api/v1/users/register
@@ -20,8 +20,7 @@ exports.registerUser = asyncMiddleware(async (req, res) => {
   const token = user.genAuthToken();
   res.header("Authorization", `Bearer ${token}`).status(201).json({
     success: true,
-    message: "User Registered successfully",
-    data: token,
+    message: "User Registered successfully"
   });
 });
 
@@ -32,7 +31,7 @@ exports.loginUser = asyncMiddleware(async (req, res) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
 
-  if (!user || (await !user.isValidPassword(password)))
+  if (!user || (!await user.isValidPassword(password)))
     return res.status(401).json({
       success: false,
       message: "Invalid email or password",
@@ -62,12 +61,37 @@ exports.currentUser = asyncMiddleware(async (req, res) => {
   });
 });
 
+//@desc get all users
+//@route GET /api/v1/users
+//@access public
+exports.getAllUsers = asyncMiddleware(async (req, res) => {
+  const page = parseInt(req.query.page) || 1;
+  const limit = parseInt(req.query.limit) || 10;
+  const offset = (page - 1) * limit;
+
+  const users = await User.find()
+    .limit(limit)
+    .skip(offset)
+    .select("-__v -password -resetToken -resetTokenExpiry");
+  
+  const total = await User.countDocuments();
+  const totalPages = Math.ceil(total / limit);
+  
+  res.status(200).json({
+    data: users,
+    total,
+    page,
+    totalPages
+  })
+})
+
 //@desc Send reset password link
 //@route POST /api/v1/users/forgot-password
 //@access public
 exports.resetLink = asyncMiddleware(async (req, res) => {
   const { email } = req.body;
   const user = await User.findOne({ email });
+ 
   if (!user)
     return res.status(404).json({
       success: false,
@@ -78,32 +102,16 @@ exports.resetLink = asyncMiddleware(async (req, res) => {
   const token = user.genAuthToken();
   user.resetToken = token;
   user.resetTokenExpiry = Date.now() + 3600000; // 1 hour
+
   await user.save();
 
-  const resetLink = `http://localhost:3000/api/v1/users/reset-password/${token}`;
-  try {
-    const resend = new Resend(process.env.RESEND_API_KEY);
+  const resetLink = `http://localhost:4000/api/v1/users/reset-password/${token}`;
+  await sendEmail(resetLink, email);
 
-    await resend.emails.send({
-      from: "onboarding@resend.dev",
-      to: email,
-      subject: "Reset your password",
-      html: `<p>Click the link below to reset your password:</p>
-             <a href="${resetLink}">Click here to reset your password</a>`,
-    });
-
-    res.status(200).json({
-      success: true,
-      message: "Password reset link sent!",
-      data: token,
-    });
-  } catch (error) {
-    console.error("Resend error:", error);
-    res.status(500).json({
-      success: false,
-      message: "Failed to send email",
-    });
-  }
+  res.status(200).json({
+    success: true,
+    message: "Password reset link sent!"
+  })
 });
 
 //@desc Reset Password

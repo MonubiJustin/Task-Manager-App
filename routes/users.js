@@ -106,6 +106,8 @@ router.post("/login", validate(log_validator), usersController.loginUser);
  */
 router.get("/me", auth, usersController.currentUser);
 
+router.get("/", usersController.getAllUsers);
+
 /**
  * @swagger
  * /api/v1/users/forgot-password:
